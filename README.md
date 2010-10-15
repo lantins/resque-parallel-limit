@@ -15,9 +15,8 @@ Extended Example
 In this example our jobs perform several network related tasks such as pinging
 or sending data.
 
-Every job requires the first argument to be `ip_address`.
-
-A maximum of 4 jobs may run in parallel for the same ip_address.
+  * Each job has `ip_address` as its first argument.
+  * A maximum of 4 jobs may run in parallel for the same ip_address.
 
     # setup in a module so we can impose the limit across multiple jobs.
     module IPAddrParallelLimit
