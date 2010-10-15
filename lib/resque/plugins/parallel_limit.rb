@@ -30,7 +30,7 @@ module Resque
       # acquire a parallel lock if one is available.
       def acquire_parallel_lock(*args)
         log "acquire lock."
-        key = resque_parallel_limit_key(*args)
+        key = parallel_limit_key(*args)
         log "redis key: #{key}"
 
         # grab a list of timestamps from redis.
@@ -60,7 +60,7 @@ module Resque
       end
 
       # customise your parallel limit key as required.
-      def resque_parallel_limit_key(*args)
+      def parallel_limit_key(*args)
         "parallel-limit:#{args[0]}"
       end
 
