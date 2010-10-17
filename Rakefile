@@ -13,11 +13,11 @@ Rake::TestTask.new(:test) do |task|
   task.verbose = true
 end
 
-# docs task.
+# Docs task.
 YARD::Rake::YardocTask.new :yardoc do |t|
     t.files   = ['lib/**/*.rb']
     t.options = ['--output-dir', "doc/",
-                 '--files', 'LICENSE HISTORY.md',
+                 '--files', 'LICENSE,HISTORY.md',
                  '--readme', 'README.md',
                  '--title', 'resque-parallel-limit documentation']
 end

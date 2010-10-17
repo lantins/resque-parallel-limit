@@ -1,16 +1,19 @@
+# modify our load path, work with the local version.
 dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift dir
 $LOAD_PATH.unshift dir + '/../lib'
 $TESTING = true
 
-require 'test/unit'
-require 'rubygems'
-require 'simplecov'
-require 'rr'
+require 'redis_bootstrap'
 
+# code coverage from here on our please.
+require 'simplecov'
 SimpleCov.start do
-  add_filter "/test/"
+  add_filter '/test/'
 end
+
+require 'test/unit'
+require 'rr'
 
 class Test::Unit::TestCase
   include RR::Adapters::TestUnit
@@ -29,3 +32,5 @@ module Resque
     alias_method :log!, :log
   end
 end
+
+Resque.redis = Redis.new(:host => '127.0.0.1', :port => 9736, :db => 1)
