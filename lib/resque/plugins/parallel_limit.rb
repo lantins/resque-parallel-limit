@@ -10,7 +10,7 @@ module Resque
       def around_perform_parallel_limit(*args)
         # using a lock strategy, acquire a lock.
         key = parallel_limit_key(*args)
-        unless acquire_parallel_lock(key)
+        unless lock = acquire_parallel_lock(key)
           parallel_lock_failed(*args) if respond_to?(:parallel_lock_failed)
           # silently discard/drop the job, unless you raise an exception.
           return
@@ -19,7 +19,7 @@ module Resque
         begin
           yield # your job runs here.
         ensure
-          release_parallel_lock(key)
+          release_parallel_lock(key, lock)
         end
       end
 
@@ -29,21 +29,19 @@ module Resque
         acquired = false
 
         # have we hit the limit?
-        if Resque.redis.llen(key) >= parallel_limit_key
-          # oh noes, limit hit!
-          # look at the oldest timestamp.
-          lock_expire = Resque.redis.lrange(key, -1, -1).last # last element of the list.
-
-          return nil unless lock_expire && lock_expire.to_i < now
-          # lock has expired!
-          Resque.redis.rpop(key) # remove last element.
+        if Resque.redis.zcard(key) >= parallel_limit
+          # oh noes, limit hit! try to remove an old lock.
+          return nil unless Resque.redis.zremrangebyscore(key, 0, now)
         end
-        # we've not hit the limit!
-        Resque.redis.lpush(key, lock) # add our lock to the start.
+        # try and acquire!
+        Resque.redis.zadd(key, lock, worker_lock_member)
       end
 
-      def release_parallel_lock(key)
-        Resque.redis.rpop(key) # remove last element.
+      def release_parallel_lock(key, lock)
+        # FIXME: add better checks:
+        #   - has the timeout already passed?
+        #   - did someone else remove our lock?
+        Resque.redis.zrem(key, lock)
       end
 
       def parallel_timeout
@@ -67,6 +65,14 @@ module Resque
 
       def log(msg)
         puts msg
+      end
+
+      def worker_lock_member
+        "#{hostname}:#{Process.pid}"
+      end
+
+      def hostname
+        @hostname ||= `hostname`.chomp
       end
 
     end
