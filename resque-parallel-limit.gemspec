@@ -12,7 +12,7 @@ spec = Gem::Specification.new do |s|
   s.files            += Dir.glob('{test/*,lib/**/*}')
   s.require_paths     = ['lib']
 
-  s.add_dependency('resque', '>= 1.8.0')
+  s.add_dependency('resque', '>= 1.9.0')
   s.add_development_dependency('test-unit')
   s.add_development_dependency('rr', '>= 1.0.0')
   s.add_development_dependency('yard')
